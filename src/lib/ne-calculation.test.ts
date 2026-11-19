@@ -1,0 +1,22 @@
+import { describe, it, expect } from 'vitest';
+import { calculateNe, contributionDeductionRate, emptyNeInputs, incomeBoxes, adjustmentBoxes, balanceBoxes, neDraftReference, type NeInputs } from './ne-calculation';
+import { demoDocuments } from './finance';
+const full = (): NeInputs => ({ ...emptyNeInputs, values: Object.fromEntries([...incomeBoxes,...adjustmentBoxes,...balanceBoxes].map(b => [b,'0'])), activity:'active',birthYear:'1990',pension:'no',sickness:'no',simple:true,accountsChecked:true });
+describe('NE income year 2026',()=>{
+ it('calculates R42 110000, R43 27500 and R47 82500 from 100000 profit and previous-year reconciliation',()=>{ const i=full();i.values.R1='120000';i.values.R6='20000';i.values.R40='25000';i.values.R41='15000';expect(calculateNe(2026,i)).toMatchObject({r11:'100000',r42:'110000',r43:'27500',r47:'82500',r48:'0',mainBox:'10.1'}); });
+ it('uses 25 percent for a 1959-born active sole trader without exceptions',()=>{expect(contributionDeductionRate(2026,{...full(),birthYear:'1959'})).toBe(25);});
+ it('uses 10 percent for birth year 1958',()=>{expect(contributionDeductionRate(2026,{...full(),birthYear:'1958'})).toBe(10);});
+ it('uses zero for birth year 1937',()=>{expect(contributionDeductionRate(2026,{...full(),birthYear:'1937'})).toBe(0);});
+ it('uses 10 percent for full pension throughout 2026',()=>{expect(contributionDeductionRate(2026,{...full(),pension:'yes'})).toBe(10);});
+ it('uses 10 percent for full sickness or activity compensation during 2026',()=>{expect(contributionDeductionRate(2026,{...full(),sickness:'yes'})).toBe(10);});
+ it('uses 20 percent and 10.3 for passive business',()=>{const i={...full(),activity:'passive' as const};i.values.R1='100000';expect(calculateNe(2026,i)).toMatchObject({rate:20,r43:'20000',r47:'80000',mainBox:'10.3'});});
+ it('carries a deficit to R48 without negative contribution deduction',()=>{const i=full();i.values.R6='349';i.values.R24='1000';expect(calculateNe(2026,i)).toMatchObject({r43:'0',r48:'1349',mainBox:'10.2'});});
+ it('never makes blank amounts zero',()=>{const i=full();delete i.values.R41;expect(calculateNe(2026,i)).toMatchObject({ready:false,missing:['R41'],r47:null});});
+ it('blocks unknown years',()=>{expect(calculateNe(2027,full()).ready).toBe(false);});
+ it('blocks unsupported adjustments',()=>{expect(calculateNe(2026,{...full(),simple:false}).ready).toBe(false);});
+ it('requires reviewed annual-account values',()=>{expect(calculateNe(2026,{...full(),accountsChecked:false}).ready).toBe(false);});
+ it('computes equity from year-end assets less liabilities, not opening balance',()=>{const i=full();i.values.B9='60000';i.values.B15='10000';expect(calculateNe(2026,i).b10).toBe('50000');});
+ it('rounds field amounts to whole SEK and floors the maximum deduction',()=>{const i=full();i.values.R1='100.50';expect(calculateNe(2026,i)).toMatchObject({r11:'101',r43:'25',r47:'76'});});
+ it('includes the explicitly reviewed 100 SEK demo fee once as a reference, not an expense posting',()=>{const docs=demoDocuments();const doc=docs[0];if (!doc) throw new Error('Missing demo invoice');doc.details.review='confirmed';doc.details.feeReview={amount:'100',currency:'SEK'};expect(neDraftReference(docs,2026)).toMatchObject({fees:'100.00',expenses:'349.00'});});
+ it('does not silently convert a JPY fee or use another year',()=>{const docs=demoDocuments();const doc=docs[0];if (!doc) throw new Error('Missing demo invoice');doc.details.paymentCurrency='JPY';doc.details.review='confirmed';doc.details.feeReview={amount:'100',currency:'JPY'};expect(neDraftReference(docs,2026)).toMatchObject({fees:'0.00',unresolvedFees:['demo-0']});expect(neDraftReference(docs,2027).fees).toBe('0.00');});
+});

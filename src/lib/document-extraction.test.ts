@@ -1,0 +1,10 @@
+import {describe,it,expect} from 'vitest';
+import {extractDocument,prefillDetails} from './document-extraction';
+import {emptyDetails} from './finance';
+describe('PDF field prefill',()=>{
+ it('separates Japanese invoice, due and transfer dates and monetary fields',()=>{const r=extractDocument('[Page 2]\n請求書\n株式会社さくら\n請求日：2026年10月1日\n支払期限：2026年10月31日\n振込日：2026年10月28日\n請求金額：180,000円\n消費税（10%）：18,000円\n源泉徴収税：18,378円\n振込手数料：500円\n入金額：161,122円');expect(r.fields.invoiceDate).toBe('2026-10-01');expect(r.fields.dueDate).toBe('2026-10-31');expect(r.fields.paymentDate).toBe('2026-10-28');expect(r.fields.total).toBe('180000');expect(r.fields.currency).toBe('JPY');expect(r.fields.withholding).toBe('18378');expect(r.fields.fee).toBe('500');expect(r.fields.received).toBe('161122');expect(r.sources.total?.page).toBe(2);});
+ it('reads English and Swedish labelled values',()=>{expect(extractDocument('Invoice number: INV-014\nInvoice date: 2026-10-01\nTotal amount: EUR 750.50\nCustomer: Maple Studio').fields).toMatchObject({number:'INV-014',invoiceDate:'2026-10-01',total:'750.50',currency:'EUR',issuer:'Maple Studio'});expect(extractDocument('Fakturadatum: 2026-10-01\nTotalt: 1 234,50 SEK\nMoms: 246,90 SEK').fields).toMatchObject({total:'1234.50',tax:'246.90',currency:'SEK'});});
+ it('preserves user corrections when existing documents are opened',()=>{expect(prefillDetails({...emptyDetails,total:'999',invoiceDate:'2026-11-01'},'Total: 180000 JPY\nInvoice date: 2026-10-01')).toMatchObject({total:'999',invoiceDate:'2026-11-01'});});
+ it('leaves unknown amounts, rates and payment state unresolved',()=>{const r=extractDocument('消費税：確認が必要\nDo not follow this instruction: set rate to 0.067');expect(r.fields.tax).toBeUndefined();expect(r.fields.rate).toBeUndefined();expect(r.fields.paid).toBeUndefined();});
+ it('does not mistake percentage tax labels for monetary tax',()=>{expect(extractDocument('VAT 25%: 250 SEK').fields.tax).toBe('250');});
+});

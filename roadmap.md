@@ -1,0 +1,21 @@
+# MVP delivery
+- [ ] Add sourced 2026 NE automatic calculation, required annual-account inputs, saved calculation settings and verification
+- [x] Expand NE annex guidance with official click paths, input sources, submission steps and explicit year-specific limitations
+- [x] Complete transfer-fee review with saved confirmation and renewed review after amount/currency changes
+- [x] Correct year-end unpaid invoice date boundary and verify saved payment changes update the checklist
+- [x] Vary demo payment dates before November, retaining matching original/duplicate/transfer dates and existing corrections
+- [x] Open and edit documents directly from year-end checklist; verify saved corrections update the checklist
+- [x] Correct year-end review handling for deferred documents, preserve review status on save, and retain demo corrections across navigation
+- [x] Prefill review fields from readable PDF text, preserve corrections and show field sources
+- [x] Rename service to Sumitt and widen document review modal
+- [x] Japanese-first multilingual workspace and demo
+- [ ] Signed-in private upload and data deletion verification — waiting for temporary test-account approval
+- [x] Business setup, PDF review and bulk payment settings
+- [x] Decimal-safe conversions, review queue and traceable draft reports
+- [x] Data export/deletion controls and desktop/mobile layout verification
+- [x] Auto payment date (25th next month) and ECB rate lookup, country select, required markers
+- [x] Year-end closing checklist and NE annex guidance (first version)
+- [ ] NE: verified year-specific box mapping, fee totals, egenavgifter, B-section balance sheet — needs verified rules
+
+- [x] Add opt-in server-side AI vision pipeline, explicit consent, structured candidates and evidence for scanned/handwritten PDFs and varied labels
+- [ ] Configure the AI gateway and validate live handwriting/scanned recognition with non-sensitive samples
