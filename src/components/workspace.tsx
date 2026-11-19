@@ -95,7 +95,7 @@ const navigation = [
 ] as const;
 const pathSteps = ["/business", "/documents", "/review", "/reports"] as const;
 export function Workspace({ page }: { page: Page }) {
-  const [lang, setLang] = useState<Language>("ja");
+  const [lang, setLang] = useState<Language>("en");
   const [user, setUser] = useState<User | null>(null);
   const [isDemo, setDemo] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);

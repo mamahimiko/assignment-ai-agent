@@ -20,7 +20,7 @@ export const Route = createFileRoute("/reset-password")({
   component: ResetPassword,
 });
 function ResetPassword() {
-  const [lang, setLang] = useState<Language>("ja");
+  const [lang, setLang] = useState<Language>("en");
   const [valid, setValid] = useState(false);
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
